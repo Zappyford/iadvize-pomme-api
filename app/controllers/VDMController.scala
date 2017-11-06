@@ -2,7 +2,9 @@ package controllers
 
 import javax.inject._
 
+import play.api.libs.json.Json
 import play.api.mvc._
+import scrapper.VDMScrapper
 
 
 /**
@@ -13,14 +15,15 @@ import play.api.mvc._
 class VDMController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
   def showMeAVDM(id: String) = Action { implicit request: Request[AnyContent] =>
-    Ok("hello world")
+    Ok("Hello world")
   }
 
   def showMeAllUrVDM() = Action { implicit request: Request[AnyContent] =>
-    Ok("hello world")
+    val VDMScrapper = new VDMScrapper
+    Ok(Json.prettyPrint(VDMScrapper.scrapeVDM(200)))
   }
 
   def showMeAllUrVDMWithOptions(option: String) = Action { implicit request: Request[AnyContent] =>
-    Ok("hello world"+option)
+    Ok("Hello world"+option)
   }
 }
