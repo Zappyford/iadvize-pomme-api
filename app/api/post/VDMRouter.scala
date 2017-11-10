@@ -13,10 +13,10 @@ import play.api.routing.sird._
 class VDMRouter @Inject()(controller: VDMController) extends SimpleRouter {
 
   override def routes: Routes = {
-    case GET(p"/" ? q"from=$from" & q"to=$to") =>
-      controller.showMeAllUrVDMWithOptions(from+to)
+    case GET(p"/?from=$from" & q"to=$to") =>
+      controller.showMeAllUrVDMWithOptions(from + to)
 
-    case GET(p"/" ? q"author=$author") =>
+    case GET(p"/?author=$author") =>
       controller.showMeAllUrVDMWithOptions(author)
 
     case GET(p"/") =>

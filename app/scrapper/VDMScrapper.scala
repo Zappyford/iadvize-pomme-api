@@ -1,24 +1,36 @@
 package scrapper
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneOffset}
 
+import models.VDM
 import org.jsoup.Jsoup
-import play.api.libs.json.{JsObject, JsValue, Json, Writes}
+import reactivemongo.api.MongoDriver
+import reactivemongo.api.collections.bson.BSONCollection
 
-import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
+/**
+  * The scrapper
+  */
 class VDMScrapper {
 
-  private val postDateTimeFormatter =DateTimeFormatter.ofPattern("EEEE d MMMM yyyy kk:mm")
+  private val postDateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy kk:mm")
 
-  def scrapeVDM(total: Int) = {
+  /**
+    * Scrapes the number of VDM and put it in the database
+    * @param total the numbers of posts we want to scrape
+    */
+  def scrapeVDM(total: Int): Unit = {
+
+    val vdmCollection: Future[BSONCollection] = MongoDriver().connection(List("localhost")).database("vdmposts").map(_.collection("posts"))
+
     var page = 1
     var count = 0
-    val jsonBuffer = new ArrayBuffer[JsObject]
-    var id = 1
+    var id = 0
     while (count < total) {
-      var scrapedArticles = Jsoup.connect(s"http://www.viedemerde.fr/?page=" + page)
+      val scrapedArticles = Jsoup.connect(s"http://www.viedemerde.fr/?page=" + page)
         .userAgent("Mozilla")
         .timeout(500000)
         .get()
@@ -26,7 +38,7 @@ class VDMScrapper {
         .select("p.hidden-xs")
         .select("a[href*=/article/]")
         .toArray()
-        .take(total-count)
+        .take(total - count)
         .map(m => m.toString.substring(m.toString.indexOf("/article"), m.toString.indexOf("html") + 4))
 
       for (e <- scrapedArticles) {
@@ -34,6 +46,7 @@ class VDMScrapper {
           .userAgent("Mozilla")
           .timeout(500000)
           .get()
+
         val author = scrapeArticle
           .select("meta[name=author]")
           .attr("content")
@@ -48,29 +61,35 @@ class VDMScrapper {
           .text()
           .split(" / ")(1)
 
-        jsonBuffer.append(Json.obj(
-          "id" -> id,
-          "content" -> content,
-          //"date" -> DateTimeFormatter.ISO_INSTANT.format(postDateTimeFormatter.parse(date)),
-          "date" -> LocalDateTime.parse(date,postDateTimeFormatter).toInstant(ZoneOffset.UTC),
-          "author" -> author
+        vdmCollection.flatMap(_.insert(
+          VDM(id,
+            content.toString,
+            LocalDateTime.parse(date, postDateTimeFormatter).toInstant(ZoneOffset.UTC).toString,
+            author)
         ))
         id += 1
       }
       page += 1
       count += scrapedArticles.length
     }
-    Json.obj(
-      "posts" -> jsonBuffer
-    )
   }
+
 }
 
+/**
+  * The companion object of the scrapper
+  */
 object VDMScrapper {
 
-  def main(args: Array[String]): Unit = {
+  /**
+    * The main function to scrap the VDM posts
+    * @param args
+    */
+  def main(args: Array[String]) = {
     val VDMScrapper = new VDMScrapper
-    val json = VDMScrapper.scrapeVDM(20)
-    print(Json.prettyPrint(json))
+    println("Scrapping...")
+    VDMScrapper.scrapeVDM(10)
+    println("End of scrapping")
+    System.exit(0)
   }
 }
