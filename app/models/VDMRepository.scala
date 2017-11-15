@@ -24,6 +24,7 @@ case class VDM(id: Int, content: String, date: String, author: String)
   */
 object VDM {
 
+
   implicit object VDMReader extends BSONDocumentReader[VDM] {
     def read(doc: BSONDocument): VDM = {
       val id = doc.getAs[Int]("id").get

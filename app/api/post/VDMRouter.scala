@@ -3,7 +3,6 @@ package api.post
 import javax.inject.Inject
 
 import controllers.VDMController
-import play.mvc.Results
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird._
