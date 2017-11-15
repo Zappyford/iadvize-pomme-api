@@ -3,6 +3,7 @@ package api.post
 import javax.inject.Inject
 
 import controllers.VDMController
+import play.mvc.Results
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
 import play.api.routing.sird._
@@ -13,11 +14,11 @@ import play.api.routing.sird._
 class VDMRouter @Inject()(controller: VDMController) extends SimpleRouter {
 
   override def routes: Routes = {
-    case GET(p"/?from=$from" & q"to=$to") =>
-      controller.showMeAllUrVDMWithOptions(from + to)
+    case GET(p"/" ? q"from=$from" & q"to=$to") =>
+      controller.showMeAllUrVDMFilteredByDates(from + to)
 
-    case GET(p"/?author=$author") =>
-      controller.showMeAllUrVDMWithOptions(author)
+    case GET(p"/" ? q"author=$author") =>
+      controller.showMeAllUrVDMFilteredByAuthor(author)
 
     case GET(p"/") =>
       controller.showMeAllUrVDM()

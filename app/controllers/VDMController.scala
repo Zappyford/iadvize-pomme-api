@@ -43,7 +43,7 @@ class VDMController @Inject()(cc: ControllerComponents, vDMRepository: VDMReposi
     vDMRepository.getAllTheVDM().map { posts =>
       Ok(Json.prettyPrint(Json.toJson(
         Json.obj(
-          "post" -> posts
+          "posts" -> posts
         )
       )))
     }
@@ -51,10 +51,31 @@ class VDMController @Inject()(cc: ControllerComponents, vDMRepository: VDMReposi
 
   /**
     * Show VDMs from the database
-    * @param option the filter we want to apply
+    * @param author the author we want to see the posts
     * @return a JSON representation of the posts filtered
     */
-  def showMeAllUrVDMWithOptions(option: String) = Action { implicit request: Request[AnyContent] =>
-    Ok("Hello world" + option)
+  def showMeAllUrVDMFilteredByAuthor(author: String) = Action.async { implicit request: Request[AnyContent] =>
+    vDMRepository.getFilteredVDMByAuthor(author).map { posts =>
+      Ok(Json.prettyPrint(Json.toJson(
+        Json.obj(
+          "posts" -> posts
+        )
+      )))
+    }
+  }
+
+  /**
+    * Show VDMs from the database
+    * @param dates the author we want to see the posts
+    * @return a JSON representation of the posts filtered
+    */
+  def showMeAllUrVDMFilteredByDates(dates: String) = Action.async { implicit request: Request[AnyContent] =>
+    vDMRepository.getFilteredVDMByDates(dates).map { posts =>
+      Ok(Json.prettyPrint(Json.toJson(
+        Json.obj(
+          "posts" -> posts
+        )
+      )))
+    }
   }
 }
